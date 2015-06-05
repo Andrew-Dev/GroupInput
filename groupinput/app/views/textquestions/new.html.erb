@@ -1,0 +1,15 @@
+<div class="col-md-4"></div>
+<div class="col-md-4">
+<h1>New Text Question</h1>
+<% flash.each do |name, msg| -%>
+	<p class="alert alert-<%=name%>"><%= msg %></p>
+<% end %>
+<p>Creating a new free response text question in <%= @audience.title %>.</p>
+<%= form_for @question, url: {action: "create"} do |f| %>
+	<%= f.label :question %>
+	<%= f.text_field :question, autofocus: true, class: 'form-control' %>
+	<br>
+    <%= f.submit "Create Question", class: 'btn btn-primary' %>
+<% end %>
+</div>
+<div class="col-md-4"></div>

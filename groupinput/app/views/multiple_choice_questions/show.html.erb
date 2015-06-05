@@ -1,0 +1,109 @@
+<h2><%= @question.question %><% if @question.multiple_choice_answers.length > 1 %><a href="#" class="btn btn-primary pull-right" onclick="broadcastButton()" id="broadcastButton"></a><% end %></h2>
+<p><%= link_to("Back to Audience",audience_path(@audience)) %></p>
+<h3>Possible Answers</h3>
+<% flash.each do |name, msg| -%>
+	<p class="alert alert-<%=name%>"><%= msg %></p>
+<% end %>
+<%= form_tag(controller: "multiple_choice_answers", action: "create", method: "post") do %>
+    <%= label_tag(:new_answer,"New Answer") %>
+    <%= text_field_tag(:answer, nil, class: "form-control",autofocus: false) %>
+    <br>
+    <%= hidden_field_tag(:question, @question.id) %>
+    <%= submit_tag("Submit", class: "btn btn-primary") %>
+<% end %>
+<br>
+<<<<<<< HEAD
+<div class="answers"></div>
+=======
+<ul class="list-group">
+	<% @question.multiple_choice_answers.each do |a| %>
+		<li class="list-group-item"><%= a.answer %><%= link_to("Delete",multiple_choice_answer_path(a), method: :delete, class: "btn btn-danger btn-xs pull-right") %></li>
+	<% end %>
+	<% if @question.multiple_choice_answers.length == 0 %>
+		<li class="list-group-item">No answers to show. Create at least two to broadcast this question.</li>
+	<% end %>
+</ul>
+>>>>>>> parent of 5e0aecd... Finished beta of app with working textquestions and fully working mc questions
+<script type="text/javascript">
+$('document').ready(function(){
+	$('.answers').load('/showmcanswers/<%=@question.id%>');
+	checkBroadcast();
+<<<<<<< HEAD
+	socket = io.connect('http://104.236.247.202:1337');
+	socket.on('connect',function(){
+		console.log("connected");
+		socket.on('ans<%=@audience.code%>',function(data){
+			console.log("recd answ: " + data);
+			$('.answers').load('/showmcanswers/<%=@question.id%>');
+		});
+	});
+=======
+>>>>>>> parent of 5e0aecd... Finished beta of app with working textquestions and fully working mc questions
+});
+var broadcasting = false;
+function checkBroadcast()
+{
+	$.get("/broadcast/<%= @audience.code %>",function(data){
+		console.log(data);
+		if(data === "none")
+		{
+			console.log("not broadcasting");
+			$('#broadcastButton').html("Broadcast to Audience");
+			broadcasting = false;
+		}
+		else
+		{
+			console.log("broadcasting a question");
+			$('#broadcastButton').html("Stop Broadcasting");
+			$('#broadcastButton').toggleClass("btn-danger");
+			var json = data.replace(/&quot;/g,"\"");
+			var questiondata = JSON.parse(json);
+			console.log(json);
+			console.log(questiondata.id.toString());
+			broadcasting = true;
+			if((questiondata.id.toString() === '<%= @question.id %>') && (questiondata.multiple_choice_answers))
+			{
+				$('#broadcastButton').html("Stop Broadcasting (This Question)");
+				console.log("this question");
+			}
+		}
+	});
+}
+function broadcastButton()
+{
+	if(broadcasting == true)
+	{
+		stopBroadcast();
+		$('#broadcastButton').html("Broadcast To Audience");
+		$('#broadcastButton').toggleClass("btn-danger");
+	}
+	else
+	{
+		startBroadcast();
+		$('#broadcastButton').html("Stop Broadcasting (This Question)");
+		$('#broadcastButton').toggleClass("btn-danger");
+	}
+}
+function startBroadcast()
+{
+	var socket = io.connect('http://localhost:1337');
+	//var json = "<%= @audience.code %>";
+	//json = json.replace(/&quot;/g,"\"");
+	$.post( "/setbroadcast/", {code: '<%= @audience.code %>', questionjson: '<%= @questionjson %>'.replace(/&quot;/g,"\"")}, function(data){
+		console.log(data);
+	} );
+	//console.log(json);
+	socket.emit('ping','<%= @audience.code %>');
+	broadcasting = true;
+}
+function stopBroadcast()
+{
+	$.get( "/stopbroadcast/<%= @audience.code %>", function(data){
+		console.log("stop broadcast: " + data);
+	});
+	broadcasting = false;
+	//todo: tell socket to stop so app stops displaying
+	var socket = io.connect('http://localhost:1337');
+	socket.emit('ping','<%= @audience.code %>');
+}
+</script>

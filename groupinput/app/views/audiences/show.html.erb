@@ -1,0 +1,23 @@
+<h1><%= @audience.title %></h1>
+<p>Access Code: <%= @audience.code %></p>
+<div class="row">
+<div class="col-md-6">
+<h3>Free Response Text Questions<%= link_to('New',new_audience_textquestion_path(@audience), class: 'btn btn-primary pull-right') %></h3>
+<ul class="list-group">
+	<% @audience.textquestions.each do |q| %>
+		<li class="list-group-item"><%= link_to(q.question,audience_textquestion_path(@audience,q)) %><%= link_to("Delete",audience_textquestion_path(@audience,q), method: :delete, class: "btn btn-danger btn-xs pull-right") %></li>
+	<% end %>
+	<% if @audience.textquestions.length == 0 %>
+		<li class="list-group-item">No questions to show.</li>
+	<% end %>
+</ul>
+</div>
+<div class="col-md-6">
+	<h3>Multiple Choice Questions<%= link_to('New',new_audience_multiple_choice_question_path(@audience), class: 'btn btn-primary pull-right') %></h3>
+	<% @audience.multiple_choice_questions.each do |q| %>
+		<li class="list-group-item"><%= link_to(q.question,audience_multiple_choice_question_path(@audience,q)) %><%= link_to("Delete",audience_multiple_choice_question_path(@audience,q), method: :delete, class: "btn btn-danger btn-xs pull-right") %></li>
+	<% end %>
+	<% if @audience.multiple_choice_questions.length == 0 %>
+		<li class="list-group-item">No questions to show.</li>
+	<% end %>
+</div>

@@ -1,0 +1,78 @@
+<html>
+    
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+        <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css"
+        rel="stylesheet" type="text/css">
+        <link href="http://pingendo.github.io/pingendo-bootstrap/themes/default/bootstrap.css"
+        rel="stylesheet" type="text/css">
+    </head>
+    
+    <body>
+        <% if notice %>
+                            <!-- <%= notice %></p> -->
+                        <% end %>
+                        <% if alert %>
+                          <!-- <p class="alert alert-danger"><%= alert %></p> -->
+                        <% end %>
+        <div class="cover">
+            <div class="navbar">
+                <div class="container">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-ex-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="/"><span>GroupInput</span></a>
+                    </div>
+                    <div class="collapse navbar-collapse" id="navbar-ex-collapse">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li>
+                                <%= link_to('Log In', new_user_session_path) %>
+                            </li>
+                            <li>
+                                <%= link_to('Sign Up', new_user_registration_path) %>  
+                            </li>
+                            <li>
+                                <a href="/pricing">Pricing<br></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="cover-image" style="background-image : url('http://pingendo.github.io/pingendo-bootstrap/assets/blurry/800x600/7.jpg')"></div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <h1 class="text-inverse">Create Polls, Collect Data</h1>
+                        <p class="text-inverse">GroupInput allows you to take polls in real time from your audience.</p>
+                        <br>
+                        <br>
+                        <a class="btn btn-lg btn-primary">Sign Me Up!</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h1 class="text-primary">GroupInput Let's You Collect Data</h1>
+                        <h3>It' as simple as a click of a button.</h3>
+                        <p>Sit back and relax while you watch your data update live. Once you press the magical broadcast button, all of your dreams will come true as your audience members respond to poll questions on their phones.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <hr>
+            <p>GroupInput - Created by Andrew Arpasi for Independent Study.</p>
+        </div>
+    </body>
+
+</html>

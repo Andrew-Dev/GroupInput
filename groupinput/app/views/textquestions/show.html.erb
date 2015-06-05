@@ -1,0 +1,83 @@
+<h2><%= @question.question %><a href="#" class="btn btn-primary pull-right" onclick="startBroadcast()">Broadcast To Audience</a></h2>
+<p><%= link_to("Back to Audience",audience_path(@audience)) %></p>
+<<<<<<< HEAD
+<div class="answers"></div>
+<script type="text/javascript">
+var broadcasting = false;
+var socket;
+$('document').ready(function(){
+	$('.answers').load('/showtxanswers/<%=@question.id%>');
+	checkBroadcast();
+	socket = io.connect('http://104.236.247.202:1337');
+	socket.on('connect',function(){
+		console.log("connected");
+		socket.on('ans<%=@audience.code%>',function(data){
+			console.log("recd answ: " + data);
+			$('.answers').load('/showtxanswers/<%=@question.id%>');
+		});
+	});
+});
+function checkBroadcast()
+{
+	$.get("/broadcast/<%= @audience.code %>",function(data){
+		console.log(data);
+		if(data === "none")
+		{
+			console.log("not broadcasting");
+			$('#broadcastButton').html("Broadcast to Audience");
+			broadcasting = false;
+		}
+		else
+		{
+			console.log("broadcasting a question");
+			$('#broadcastButton').html("Stop Broadcasting");
+			$('#broadcastButton').toggleClass("btn-danger");
+			var json = data.replace(/&quot;/g,"\"");
+			var questiondata = JSON.parse(json);
+			console.log(json);
+			console.log(questiondata.id.toString());
+			broadcasting = true;
+			if((questiondata.id.toString() === '<%= @question.id %>'))
+			{
+				$('#broadcastButton').html("Stop Broadcasting (This Question)");
+				console.log("this question");
+			}
+		}
+	});
+}
+function broadcastButton()
+{
+	if(broadcasting == true)
+	{
+		stopBroadcast();
+		$('#broadcastButton').html("Broadcast To Audience");
+		$('#broadcastButton').toggleClass("btn-danger");
+	}
+	else
+	{
+		startBroadcast();
+		$('#broadcastButton').html("Stop Broadcasting (This Question)");
+		$('#broadcastButton').toggleClass("btn-danger");
+	}
+}
+=======
+<p><%= @question.textresponses.count %> Responses</p>
+<ul class="list-group">
+	<% @question.textresponses.each do |q| %>
+		<li class="list-group-item"><%= q.response %></li>
+	<% end %>
+	<% if @question.textresponses.length == 0 %>
+		<li class="list-group-item">No responses to show.</li>
+	<% end %>
+</ul>
+<script type="text/javascript">
+>>>>>>> parent of 5e0aecd... Finished beta of app with working textquestions and fully working mc questions
+function startBroadcast()
+{
+	var socket = io.connect('http://localhost:1337');
+	var json = "<%= @audience.code %><%= @questionjson %>";
+	json = json.replace(/&quot;/g,"\"");
+	console.log(json);
+	socket.emit('question',json);
+}
+</script>

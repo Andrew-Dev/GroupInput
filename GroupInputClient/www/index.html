@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html ng-app="groupinput">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title></title>
+
+    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+
+    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
+    <link href="css/ionic.app.css" rel="stylesheet">
+    -->
+
+    <!-- ionic/angularjs js -->
+    <script src="lib/ionic/js/ionic.bundle.js"></script>
+
+    <!-- cordova script (this will be a 404 during development) -->
+    <script src="cordova.js"></script>
+
+      <script src="http://104.236.247.202:1337/socket.io/socket.io.js"></script>
+  	
+    <script src="js/jquery.js"></script>
+    
+    <!-- your app's js -->
+    <script src="js/app.js"></script>
+    
+    <script type="text/javascript">
+      var currentAudience = "";
+    </script>
+    
+  </head>
+   <body ng-app="starter">
+    <ion-nav-view></ion-nav-view>
+   <script type="text/ng-template" id="home.html">
+     <ion-view title="home" ng-controller="AudiencesCtrl">
+    <ion-pane>
+      <ion-header-bar class="bar-positive">
+        <h1 class="title">GroupInput</h1>
+      </ion-header-bar>
+      <ion-content padding="true">
+        <div id="audienceList" width="100%">
+        <h4>Join An Audience</h4>
+          <div class="list" width="100%">
+            <label class="item item-input">
+              <span class="input-label" style="">Audience Code</span>
+              <input type="text" ng-model="thecode" class="codetxt">
+            </label>
+            <br>
+            <button class="button button-outline button-positive" ng-click="getAudienceFromCode(thecode);">
+              Add Audience
+            </button>
+            <button class="button button-outline button-royal">
+              Scan QR
+            </button>
+  	         <h4>My Audiences</h4>
+            <div ng-repeat="audience in audiences track by $index">
+             <a class="item" style="a.item{width:100%}" ui-sref="question({code: audience.code})" onclick="
+              setTimeout(function() {	
+                  socketConnect();
+              }, 500);
+             "><b>{{audience.title}}</b><br>Code: {{audience.code}}</a>
+            </div>
+            <p ng-show="!audiences.length">No audiences to show. Please enter a code.</p>
+        </div>
+      </ion-content>
+    </ion-pane>
+    </ion-view>
+   </script>
+   <script type="text/ng-template" id="question.html">
+     <ion-view title="question" ng-controller="QuestionCtrl">
+      <ion-pane>
+        	<ion-header-bar class="bar-positive">
+            <div class="buttons">
+              <button class="button" ui-sref="home" onclick="socketStop();">Back</button>
+            </div>
+            <h1 class="title audiencetitle">{{currentAudience.title}}</h1>
+          </ion-header-bar>
+          <ion-content padding="true">
+            <p class="waitnotice">Awaiting a question from the administrator of {{currentAudience.title}}.</p>
+            <div class="multiplechoicequestion" style="display: none">
+              <h5 class="mcprompt">Please select an answer to the following question:</h5>
+              <h4 class="mcquestion"></h4>
+              <br>
+              <div class="multiplechoiceanswers">
+              </div>
+            </div>
+            <div class="textquestion" style="display: none">
+              <h5 class="txprompt">Please type your answer to the following question:</h5>
+              <h4 class="txquestion"></h4>
+              <div class="txresponsearea">
+                <p class="txcomplete" style="display: none">Your answer to this question has been recieved. Thank you.</p>
+                <br>
+                <div class="txform">
+                  <label class="item">
+                  	<textarea style="width: 100%; min-height: 120px;" id="answerarea"></textarea>
+                  </label>
+                  <br>
+                  <button class="button button-outline button-positive" onclick="submitTextAnswer()">
+                      Submit
+                    </button>
+                </div>
+              </div>
+            </div>
+          </ion-content>
+      </ion-pane>
+     </ion-view>
+     
+   </script>
+    <script type="text/javascript">
+      //Used for sending/receiving question data in realtime.
+      var socket;
+      window.setInterval(function(){
+        $('.codetxt').val (function () {
+          return this.value.toUpperCase();
+        });
+      },10);
+      $(".multiplechoicequestion").hide();
+      console.log("hello from the main js thingy");
+      function socketStop()
+      {
+        socket.removeAllListeners(window.localStorage["audience"]);
+        console.log("stopped");
+      }
+      function checkBroadcast()
+      {
+        $.get('http://104.236.247.202/broadcast/' + window.localStorage['audience'] + "/" + window.localStorage['token'], function(data){
+          if(data === "none")
+          {
+            console.log("no broadcast");
+            stopQuestion();
+          }
+          else
+          {
+            console.log(data);
+            var question = JSON.parse(data);
+            if(question.multiple_choice_answers != null)
+            {
+              $.get('http://104.236.247.202/mccheckresponse/' + question.id + "/" + window.localStorage['token'], function(data2){
+                if(data2 === "response")
+                {
+                  //already answered.
+                  console.log("answered" + data2);
+                  handleAnswered(question);
+                }
+                else
+                {
+                  console.log(data2);
+                  handleQuestion(question);
+                }
+              });
+            }
+            else
+            {
+              $.get('http://104.236.247.202/txcheckresponse/' + question.id + "/" + window.localStorage['token'], function(data2){
+                if(data2 === "response")
+                {
+                  //already answered.
+                  console.log("answered" + data2);
+                  handleAnswered(question);
+                }
+                else
+                {
+                  console.log(data2);
+                  handleQuestion(question);
+                }
+              });
+            }
+          }
+        });
+        
+      }
+      function socketConnect()
+      {
+        checkBroadcast();
+        socket = io.connect('http://104.236.247.202:1337',{'force new connection':true});
+              console.log("Local storage audience from view={" + window.localStorage['audience'] + "}");
+              socket.on('connect',function(){
+                console.log("connection");
+                //console.log("connected to audience " + window.localStorage['audience']);
+                socket.emit('message', 'Hello server, from code ' + window.localStorage['audience']);
+                socket.on(window.localStorage['audience'], function (data) {
+                  console.log(data);
+                  checkBroadcast();
+                });
+              });
+        	}
+          function handleAnswered(question)
+          {
+            if(question.multiple_choice_answers != null)
+            {
+                console.log("multiple choice detected");
+                $(".waitnotice").hide();
+                $('.mcquestion').html('<p>' + question.question + '</p>');
+                $('.mcprompt').html('');
+                $(".multiplechoicequestion").show();
+                $('.multiplechoiceanswers').html('Your answer to this question has been recieved. Thank you.');
+            }
+            else
+            {
+              console.log("handle answered text");
+              $(".waitnotice").hide();
+              $('.txform').hide();
+              $('.txprompt').hide();
+              $('.txcomplete').show();
+              $('.txquestion').html('<p>' + question.question + '</p>');
+              $('.textquestion').show();
+            }
+          }
+          function handleQuestion(question)
+          {
+                    if(question.multiple_choice_answers != null)
+                    {
+                      console.log("multiple choice detected");
+                      $(".waitnotice").hide();
+                      $('.multiplechoiceanswers').html('');
+                      $('.mcprompt').html('Please select an answer to the following question:');
+                      for(var i=0;i<question.multiple_choice_answers.length;i++)
+                      {
+                        var answer = question.multiple_choice_answers[i];
+                        $(".multiplechoiceanswers").append('<a class="item" onclick="answerQuestion(' + answer.id + ');">' + answer.answer );
+                      }
+                      $('.mcquestion').html('<p>' + question.question + '</p>');
+                      $(".multiplechoicequestion").show();
+                    }
+                    else
+                    {
+                      console.log("handling free response");
+                      $(".waitnotice").hide();
+                  	  $('.txprompt').html('Please type your answer to the following question:');
+                      $('.txprompt').show();
+                      $('.txresponsearea').show();
+                      $('.txcomplete').hide();
+                      $('.txquestion').html('<p>' + question.question + '</p>');
+                      $('.txform').show();
+                      $('.textquestion').show();
+                    }
+          }
+          function stopQuestion()
+          {
+            $(".multiplechoicequestion").hide();
+            $(".textquestion").hide();
+            $(".waitnotice").show();
+          }
+          function answerQuestion(answerid)
+          {
+            console.log("Answering question with answer id " + answerid);
+            //send answer to server (post with client id)
+            $.post('http://104.236.247.202/multiple_choice_responses/',{answerid: answerid, token: window.localStorage['token']},function(data){
+              console.log("data: " + data);
+              //socket emit answer
+              socket.emit('answer',window.localStorage['audience']);
+            });
+            //hide question
+            console.log("multiple choice detected");
+            $(".waitnotice").hide();
+            $('.mcprompt').html('');
+            $(".multiplechoicequestion").show();
+            $('.multiplechoiceanswers').html('Your answer to this question has been recieved. Thank you.');
+          }
+          function submitTextAnswer()
+          {
+            console.log("submitting typed answer to audience");
+            var answercontent = $('#answerarea').val();
+            console.log("answer content: " + answercontent);
+            $.post('http://104.236.247.202/textresponses/',{code: window.localStorage['audience'], token: window.localStorage['token'], response: answercontent},function(data){
+              console.log("data: " + data);
+              //socket emit answer
+              socket.emit('answer',window.localStorage['audience']);
+            });
+            $('.txform').hide();
+            $('.txprompt').hide();
+            $('.txcomplete').show();
+          }
+          </script>
+  </body>
+</html>

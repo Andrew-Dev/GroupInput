@@ -1,0 +1,10 @@
+<h1>My Audiences<%= link_to('New Audience',new_audience_path, class: 'btn btn-primary pull-right') %>
+</h1>
+<ul class="list-group">
+	<% @audiences.reverse.each do |a| %>
+		<li class="list-group-item"><%= link_to(a.title,audience_path(a)) %><%= link_to("Delete",audience_path(a), method: :delete, class: "btn btn-danger btn-xs pull-right") %></li>
+	<% end %>
+	<% if @audiences.length == 0 %>
+		<li class="list-group-item">No audiences to show.</li>
+	<% end %>
+</ul>
