@@ -43,11 +43,8 @@ class MultipleChoiceQuestionsController < ApplicationController
 
 	def destroy
 		question = MultipleChoiceQuestion.find(params[:id])
-<<<<<<< HEAD
 		audience = question.audience
-=======
 		audience = @question.audience
->>>>>>> parent of 5e0aecd... Finished beta of app with working textquestions and fully working mc questions
 		question.destroy
 		redirect_to(audience_path(audience))
 	end
