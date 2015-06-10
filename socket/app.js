@@ -15,10 +15,6 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
   io.sockets.emit('news', { hello: 'world' });
   socket.on('ping', function (data) {
-    //console.log("Recieved Question: " + data);
-    /*var json = data.substring(8);
-    var code = data.substring(0,8);
-    console.log("Code: " + code);*/
     console.log("Pinging clients of " + data + ".");
     io.sockets.emit(data, 'ping');
   });
